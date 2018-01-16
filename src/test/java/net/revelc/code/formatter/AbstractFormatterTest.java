@@ -20,11 +20,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
-import net.revelc.code.formatter.ConfigurationSource;
-import net.revelc.code.formatter.Formatter;
-import net.revelc.code.formatter.LineEnding;
-import net.revelc.code.formatter.Result;
-
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.plugin.logging.SystemStreamLog;
 import org.junit.Assert;
@@ -87,7 +82,8 @@ public abstract class AbstractFormatterTest {
         Result result = formatter.formatFile(sourceFile, LineEnding.CRLF, false);
         Assert.assertEquals(Result.SUCCESS, result);
 
-        // We are hashing this as set in stone in case for some reason our source file changes unexpectedly.
+        // We are hashing this as set in stone in case for some reason our
+        // source file changes unexpectedly.
         byte[] sha512 = Files.asByteSource(sourceFile).hash(Hashing.sha512()).asBytes();
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < sha512.length; i++) {
@@ -95,6 +91,29 @@ public abstract class AbstractFormatterTest {
         }
 
         Assert.assertEquals(expectedSha512, sb.toString());
+    }
+
+    /***
+     * Formats the code and simply returns the formating result.
+     * 
+     * @param formatter
+     * @param fileUnderTest
+     * @return
+     * @throws IOException
+     */
+    protected Result doFormat(Formatter formatter, String fileUnderTest) throws IOException {
+        // TODO: refactor later with #doTestFormat to avoid code duplication
+        File originalSourceFile = new File("src/test/resources/", fileUnderTest);
+        File sourceFile = new File("target/testoutput/", fileUnderTest);
+
+        Map<String, String> options = new HashMap<>();
+        final File targetDir = new File("target/testoutput");
+        targetDir.mkdirs();
+
+        Files.copy(originalSourceFile, sourceFile);
+
+        formatter.init(options, new TestConfigurationSource(targetDir));
+        return formatter.formatFile(sourceFile, LineEnding.CRLF, false);
     }
 
 }
