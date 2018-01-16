@@ -53,6 +53,8 @@ import org.eclipse.text.edits.MalformedTreeException;
 import org.xml.sax.SAXException;
 
 import com.google.common.hash.Hashing;
+
+import net.revelc.code.formatter.cpp.CppFormatter;
 import net.revelc.code.formatter.css.CssFormatter;
 import net.revelc.code.formatter.html.HTMLFormatter;
 import net.revelc.code.formatter.java.JavaFormatter;
@@ -221,6 +223,12 @@ public class FormatterMojo extends AbstractMojo implements ConfigurationSource {
     private String configCssFile;
 
     /**
+     * File or classpath location of an Eclipse CDT code formatter configuration xml file to use in formatting.
+     */
+    @Parameter(defaultValue = "formatter-maven-plugin/cpp/kr.xml", property = "configCppfile", required = true)
+    private String configCppFile;
+
+    /**
      * Whether the java formatting is skipped.
      */
     @Parameter(defaultValue = "false", property = "formatter.java.skip")
@@ -257,6 +265,12 @@ public class FormatterMojo extends AbstractMojo implements ConfigurationSource {
     private Boolean skipCssFormatting;
 
     /**
+     * Whether the c/c++ formatting is skipped.
+     */
+    @Parameter(defaultValue = "false", property = "formatter.cpp.skip")
+    private Boolean skipCppFormatting;
+
+    /**
      * Whether the formatting is skipped.
      *
      * @since 0.5
@@ -281,6 +295,8 @@ public class FormatterMojo extends AbstractMojo implements ConfigurationSource {
     private JsonFormatter jsonFormatter = new JsonFormatter();
 
     private CssFormatter cssFormatter = new CssFormatter();
+
+    private CppFormatter cppFormatter = new CppFormatter();
 
     /**
      * Execute.
@@ -545,6 +561,15 @@ public class FormatterMojo extends AbstractMojo implements ConfigurationSource {
             } else {
                 result = this.cssFormatter.formatFile(file, this.lineEnding, dryRun);
             }
+        } else if ((file.getName().endsWith(".h") || file.getName().endsWith(".c") || file.getName().endsWith(".cpp")
+                || file.getName().endsWith(".ino") || file.getName().endsWith(".pde"))
+                && cssFormatter.isInitialized()) {
+            if (skipCppFormatting) {
+                getLog().info("c/c++ formatting is skipped");
+                result = Result.SKIPPED;
+            } else {
+                result = this.cppFormatter.formatFile(file, this.lineEnding, dryRun);
+            }
         } else {
             result = Result.SKIPPED;
         }
@@ -660,6 +685,10 @@ public class FormatterMojo extends AbstractMojo implements ConfigurationSource {
         }
         if (configCssFile != null) {
             this.cssFormatter.init(getOptionsFromPropertiesFile(configCssFile), this);
+        }
+        Map<String, String> cppFormattingOptions = getFormattingOptions(this.configCppFile);
+        if (cppFormattingOptions != null) {
+            this.cppFormatter.init(cppFormattingOptions, this);
         }
         // stop the process if not config files where found
         if (javaFormattingOptions == null && jsFormattingOptions == null && configHtmlFile == null
