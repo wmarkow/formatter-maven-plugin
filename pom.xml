@@ -163,6 +163,11 @@
       <version>3.1.0</version>
     </dependency>
     <dependency>
+      <groupId>org.eclipse.cdt</groupId>
+      <artifactId>org.eclipse.cdt.core</artifactId>
+      <version>6.3.1.201710130142</version>
+    </dependency>
+    <dependency>
       <groupId>org.eclipse.tycho</groupId>
       <artifactId>org.eclipse.jdt.core</artifactId>
       <version>3.13.50.v20171007-0855</version>
@@ -358,6 +363,11 @@
           <artifactId>jacoco-maven-plugin</artifactId>
           <version>0.7.9</version>
         </plugin>
+        <plugin>
+          <groupId>com.googlecode.maven-download-plugin</groupId>
+          <artifactId>download-maven-plugin</artifactId>
+          <version>1.4.0</version>
+        </plugin>
       </plugins>
     </pluginManagement>
 
@@ -515,6 +525,24 @@
               </includes>
               <destFile>${project.build.directory}/coverage-reports/jacoco-ut.exec</destFile>
               <propertyName>utCoverage</propertyName>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>com.googlecode.maven-download-plugin</groupId>
+        <artifactId>download-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <goals>
+              <goal>wget</goal>
+            </goals>
+            <phase>clean</phase>
+            <configuration>
+              <url>http://download.eclipse.org/tools/cdt/releases/9.3/cdt9.3.3/plugins/org.eclipse.cdt.core_6.3.1.201710130142.jar</url>
+              <outputFileName>org.eclipse.cdt.core-6.3.1.201710130142.jar</outputFileName>
+              <outputDirectory>${settings.localRepository}/org/eclipse/cdt/org.eclipse.cdt.core/6.3.1.201710130142</outputDirectory>
+              <failOnError>true</failOnError>
             </configuration>
           </execution>
         </executions>
